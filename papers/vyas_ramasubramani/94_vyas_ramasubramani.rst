@@ -55,9 +55,10 @@ Introduction
 
 **As I write this outline, I'm finding that I'm naturally creating a similar set of sections to the original paper. Someone else feel free to tell me if you think of a better layout.**
 
-We can use our normal type of introduction here.
-However, I think we also need more motivation here than we did for the JCMS paper, for example.
-I think we need to be very thoughtful about how we convince our users that a) our software is useful, and b) our software is original (without getting into comparisons with other software yet).
+I think our introduction needs to be a little bit more balanced with respect to flow than the JCMS paper.
+We can use a similar example potentially, but I think showing the data vs. workflow components will be critical to convincing our readers that we have a useful and unique product.
+In that paper the bar was higher in terms of showing that there is actually a problem that had to be solved, in the sense that we want materials scientists to recognize that there are better ways to store data.
+Here, the bar is higher in terms of showing that what we're implementing is actually a substantial contribution to the existing software ecosystem.
 
 Design
 ------
