@@ -53,20 +53,28 @@ signac: A Python framework for data and workflow management
 Introduction
 ------------
 
-Twelve hundred years ago  |---| in a galaxy just across the hill...
+**As I write this outline, I'm finding that I'm naturally creating a similar set of sections to the original paper. Someone else feel free to tell me if you think of a better layout.**
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum sapien
-tortor, bibendum et pretium molestie, dapibus ac ante. Nam odio orci, interdum
-sit amet placerat non, molestie sed dui. Pellentesque eu quam ac mauris
-tristique sodales. Fusce sodales laoreet nulla, id pellentesque risus convallis
-eget. Nam id ante gravida justo eleifend semper vel ut nisi. Phasellus
-adipiscing risus quis dui facilisis fermentum. Duis quis sodales neque. Aliquam
-ut tellus dolor. Etiam ac elit nec risus lobortis tempus id nec erat. Morbi eu
-purus enim. Integer et velit vitae arcu interdum aliquet at eget purus. Integer
-quis nisi neque. Morbi ac odio et leo dignissim sodales. Pellentesque nec nibh
-nulla. Donec faucibus purus leo. Nullam vel lorem eget enim blandit ultrices.
-Ut urna lacus, scelerisque nec pellentesque quis, laoreet eu magna. Quisque ac
-justo vitae odio tincidunt tempus at vitae tortor.
+We can use our normal type of introduction here.
+However, I think we also need more motivation here than we did for the JCMS paper, for example.
+I think we need to be very thoughtful about how we convince our users that a) our software is useful, and b) our software is original (without getting into comparisons with other software yet).
+
+Design
+------
+
+Here we can go into detail about how signac works, and the various parts.
+I think flow should get a more first-class treatment here than it did in the JCMS paper so that we can clearly show the delineation between data and workflow.
+Also dashboard can be shown as an example of a plug-in that takes advantage of signac's modularity (if it's at that point).
+I also think this is a good place to draw comparisons to existing software; we can repurpose the comparable solutions from the paper.
+Rather than keeping that separate, however, I think we should inline it with our design decisions to help justify why we did what we did.
+
+Implementation
+--------------
+
+Relative to the paper, I think we want to show more examples here.
+How do you install signac?
+What can you do?
+I think this section can be more code-heavy now.
 
 
 Bibliographies, citations and block quotes
