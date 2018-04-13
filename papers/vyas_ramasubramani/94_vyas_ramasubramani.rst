@@ -21,6 +21,7 @@
 :institution: Department of Physics, University of Michigan, Ann Arbor
 :institution: Biointerfaces Institute, University of Michigan, Ann Arbor
 
+:bibliography: mybib
 
 .. :video: http://www.youtube.com/watch?v=dhRUe-gz690
 
@@ -30,13 +31,21 @@ signac: A Python framework for data and workflow management
 
 .. class:: abstract
 
-	**This is just the abstract we submitted; we should maybe rework, we can afford to use some more space now**
-	Computational studies in physics, chemistry, and materials science are frequently characterized by well-parameterized but constantly evolving data schemas.
-	Poor management of these dynamic schemas can significantly impede computational research.
-	Our talk showcases the signac framework, an open-source Python package designed for simple data and workflow management, particularly in high performance computing environments.
-	The framework's flexible data model allows easy adaptation into pre-existing file-based workflows while also providing critical database functionality such as filtering, searching, and grouping data.
-	signac also provides tools to develop complex workflows operating on its data spaces, enabling the simple, efficient, and reproducible execution of computational studies.
+	**Based on the comments on our proposal I've written an abstract to really highlight why we are important/unique. It's probably a little too long, but I first want to make sure key ideas come across**
 
+    Organizing and conducting computational research requires versatile, minimally restrictive tools that can easily adapt to the highly dynamic data schemas and workflows characteristic of scientific investigations.
+    The workflow requirements of many existing tools are sufficiently onerous to discourage their incorporation into existing work, with researchers preferring their own *ad hoc* data and provenance management methods that are less robust but require no additional effort to adopt.
+    The resulting data fragmentation and methodological incompatibilities significantly impede computational research.
+	Our talk showcases the signac framework, an open-source Python package that offers highly modular and scalable solutions for this problem.
+    Its highly flexible, server-free data model allows easy adaptation into pre-existing file-based workflows without sacrificing critical database functionality such as filtering, searching, and grouping data.
+    Furthermore, by decoupling data and workflow management, signac nearly eliminates the barrier for initial adoption while also providing powerful workflow management tools on top of its data model as needed.
+    The framework is designed with high performance computing in mind, meaning that both its data and workflow management components scale from laptop or desktop usage to large compute clusters.
+
+
+    **I think that the critical benefit of signac that we need to focus on is how lightweight and easy it is to adopt. Users can start using it with basically 0 startup cost, and it doesn't penalize users for having poorly defined schemas. This property is what makes it so useful to scientists who don't wnat to have to come up with a complex schema to begin with. That being the case, I actually think focusing on flow too much takes away our ability to claim this. While it is powerful and flexible, there's enough boilerplate that it's not yet an easy sell that it is *easy* to adopt flow on top of signac.
+    I think that if we do a sufficiently good job refactoring flow, then this could change and we have an opportunity to make gains there. In any case, though, I think that for this talk we really should start by focusing on signac and its simplicity. We can get to flow after as being optional, but because flow still requires insubstantial boilerplate I think in that sense while it's still good it weakens that part of our argument. Same goes for dashboard. That said, we should definitely still present them, we just have to frame them differently. Also this makes reworking our flow front-end pretty critical IMO (as discussed with Simon)**
+
+    **Main differences with sacred I see is that at the core we are more focused on the data itself. Sacred is more focused on the workflow. We should emphasize this distinction somehow**
 .. class:: keywords
 
 	data management, database, data sharing, provenance, computational workflow 
