@@ -21,7 +21,7 @@
 :institution: Department of Physics, University of Michigan, Ann Arbor
 :institution: Biointerfaces Institute, University of Michigan, Ann Arbor
 
-:bibliography: mybib
+:bibliography: paper
 
 .. :video: http://www.youtube.com/watch?v=dhRUe-gz690
 
@@ -45,7 +45,6 @@ signac: A Python framework for data and workflow management
     **I think that the critical benefit of signac that we need to focus on is how lightweight and easy it is to adopt. Users can start using it with basically 0 startup cost, and it doesn't penalize users for having poorly defined schemas. This property is what makes it so useful to scientists who don't wnat to have to come up with a complex schema to begin with. That being the case, I actually think focusing on flow too much takes away our ability to claim this. While it is powerful and flexible, there's enough boilerplate that it's not yet an easy sell that it is *easy* to adopt flow on top of signac.
     I think that if we do a sufficiently good job refactoring flow, then this could change and we have an opportunity to make gains there. In any case, though, I think that for this talk we really should start by focusing on signac and its simplicity. We can get to flow after as being optional, but because flow still requires insubstantial boilerplate I think in that sense while it's still good it weakens that part of our argument. Same goes for dashboard. That said, we should definitely still present them, we just have to frame them differently. Also this makes reworking our flow front-end pretty critical IMO (as discussed with Simon)**
 
-    **Main differences with sacred I see is that at the core we are more focused on the data itself. Sacred is more focused on the workflow. We should emphasize this distinction somehow**
 .. class:: keywords
 
 	data management, database, data sharing, provenance, computational workflow 
@@ -53,288 +52,116 @@ signac: A Python framework for data and workflow management
 Introduction
 ------------
 
-**As I write this outline, I'm finding that I'm naturally creating a similar set of sections to the original paper. Someone else feel free to tell me if you think of a better layout.**
+In the age of big data and high performance computing, streamlining the processes of data generation and analysis has become a primary challenge.
+Increases in computational resources have made it easier to generate and consume large quantities of data, but computational science has not yet maximized the possible gains from this due to limitations in the downstream processes for organizing and analyzing the data.
+Many applications in computational science depend on highly file-based workflows not amenable to traditional relational database for storing data, and HPC applications in particular require that data be available on-demand, enforcing strict performance requirements for any data storage mechanism.
+The ad hoc solutions typically employed in standard scientific workflows, such as using file-naming conventions (**Need to show examples**) for data management, are highly inflexible and lead to various downstream inefficiencies.
+This paper showcases the signac framework, a data and workflow management tool that aims to address these issues in a simple, powerful, and flexible manner.
 
-I think our introduction needs to be a little bit more balanced with respect to flow than the JCMS paper.
-We can use a similar example potentially, but I think showing the data vs. workflow components will be critical to convincing our readers that we have a useful and unique product.
-In that paper the bar was higher in terms of showing that there is actually a problem that had to be solved, in the sense that we want materials scientists to recognize that there are better ways to store data.
-Here, the bar is higher in terms of showing that what we're implementing is actually a substantial contribution to the existing software ecosystem.
+To concretely demonstrate signac's capabilities, we turn to an example.
 
-Design
-------
+Consider the simple experiment of measuring the distance traveled by a projectile.
+Initially, we consider the simple experiment of a person throwing a pumpkin.
+Hypothesizing that the distance traveled is a function of the launch angle, you set up a simple computational experiment that applies basic kinematic to predict the distance traveled and stores the data in files named by the angle it contains data for (a relatively common practice in fields where the standard software packages generate all outputs as files).
+After the initial experiments are completed, however, you realize that a much larger initial velocity (and therefore a greater distance) could be attained by using a cannon instead of your arm!
+The simplest method for addressing this change, simply renaming all files to account for the new parameter, would quickly become infeasible if the parameter space increased further, and a more flexible traditional solution involving the use of e.g. a relational database might introduce unsustainable performance bottlenecks for file-based workflows.
 
-Here we can go into detail about how signac works, and the various parts.
-I think flow should get a more first-class treatment here than it did in the JCMS paper so that we can clearly show the delineation between data and workflow.
-Also dashboard can be shown as an example of a plug-in that takes advantage of signac's modularity (if it's at that point).
-I also think this is a good place to draw comparisons to existing software; we can repurpose the comparable solutions from the paper.
-Rather than keeping that separate, however, I think we should inline it with our design decisions to help justify why we did what we did.
+The signac framework is designed to handle this problem in a flexible and natural way for such workflows.
+By storing data with its associated metadata in an organized manner *directly on the filesystem*, signac provides database functionality such as searching and grouping data without the overhead of maintaining a server or interfacing with external systems.
+With signac, data space modifications like the one above are trivially achievable with just a few lines of Python code.
+Additionally, signac's workflow component makes it just as easy to modify the process of data generation.
+For example, accounting for air resistance in our calculation and comparing that result to our more naive approach is as simple as defining the new distance calculation as a Python function; signac's workflow component will immediately enable the use of this calculation on the existing data space through a single command-line command. 
 
-Implementation
---------------
 
-Relative to the paper, I think we want to show more examples here.
-How do you install signac?
-What can you do?
-I think this section can be more code-heavy now.
+Usage and Overview
+------------------
+**Maybe have a global schematic of both signac and flow together here. It can show like workspace, job, project, etc as one summary, then include Flowprojects as part of the other summary to show the components of flow and the link**
 
+*Given the audience, it may be fine to just include the code as part of the introduction*
 
-Bibliographies, citations and block quotes
-------------------------------------------
+To make this more concrete, we demonstrate how the above example might work in practice.
 
-If you want to include a ``.bib`` file, do so above by placing  :code:`:bibliography: yourFilenameWithoutExtension` as above (replacing ``mybib``) for a file named :code:`yourFilenameWithoutExtension.bib` after removing the ``.bib`` extension.
+*Basic example of ad hoc data space creation using just signac to address the previous problem*
 
-**Do not include any special characters that need to be escaped or any spaces in the bib-file's name**. Doing so makes bibTeX cranky, & the rst to LaTeX+bibTeX transform won't work.
+If we run this script, we now see the following folder structure has been created.
 
-To reference citations contained in that bibliography use the :code:`:cite:`citation-key`` role, as in :cite:`hume48` (which literally is :code:`:cite:`hume48`` in accordance with the ``hume48`` cite-key in the associated ``mybib.bib`` file).
+*Show folder structure*
 
-However, if you use a bibtex file, this will overwrite any manually written references.
+In the context of signac, this parent folder is the *project*, denoted by the presence of the signac.rc configuration file (which at the moment just contains the name of the project).
+The *workspace* is the other core component of signac; it is the folder within which all data is stored.
+We can easily parse this data structure with signac.
+For example, to find the name of the project, we can enter `signac project`; to find the specific directory, or *job*, which has a particular :math:`v_0` value, we can execute `signac find v0 1`.
+A major benefit of signac is that the data can be easily parsed even **without using signac**.
+The metadata is encoded in JSON (show this in the figure detailed below), making it easy to crawl the filesystem and immediately get this data out.
 
-So what would previously have registered as a in text reference ``[Atr03]_`` for
+*Make figure showing evolution of folder structure and the commands that can be executed. Basically, first show that there is nothing, then signac.rc, then one job, then many jobs. Below that, show contents of one job.stateopin*
 
-::
+The setup cost here was essentially zero.
+Once the software was installed, we could immediately store the data and manage it without spinning up a server or introducing more complex dependencies.
+Additionally, the service is completely divorced from any particular workflow.
+Simply call the relevant function and data will be stored in the right place; how you generate that data is up to you.
 
-     [Atr03] P. Atreides. *How to catch a sandworm*,
-           Transactions on Terraforming, 21(3):261-300, August 2003.
+**Should talk some about indexing**
 
-what you actually see will be an empty reference rendered as **[?]**.
 
-E.g., [Atr03]_.
+Defining workflows
+++++++++++++++++++
 
+Defining the workflow we have detailed above is equally trivial.
+Assuming that the function to perform the calculation already exists, we simply have to modify it to take the job as an argument and extract the required code from it.
+Alternatively, if the function is in the form of a python script that takes the desired arguments on the command line, we can simply write another function to call it as follows: **example to follow pending changes to flow**.
+If code already exists to perform specific tasks, the goal of signac-flow is to make it trivial to immediately string these into a logical sequence of operations that can be easily automated.
+Once defined (as shown above), running these operations is also extremely simple from the command line: `python project.py run ${OPERATION}` will execute any operation.
+The project interface is more powerful than that, though; it also enables the user to get the status of all jobs in a project, to determine the next jobs in the sequence, or submit to clusters.
+Cluster submission is one of the most important roles of the FlowProject (**needs earlier intro**).
+Designed to work with any cluster environment (and prepackaged to work with Slurm and Torque PBS schedulers out of the box), given a FlowProject defined as above submitting a job to a cluster is as simple as `python project.py submit`.
+In addition to the time-saving but not groundbreaking result that you never have to write a job script again, this submission mode is enormously powerful, enabling essentially complete control over the submission process.
+The basic command described above will immediately execute the next operation defined for each job; however, the user can instead specify particular jobs or operations to run.
+In addition, all standard submission controls are available, such as specifying the job walltime, the number of processors, the type of processor (cpu vs gpu), etc.
 
-If you wish to have a block quote, you can just indent the text, as in
 
-    When it is asked, What is the nature of all our reasonings concerning matter of fact? the proper answer seems to be, that they are founded on the relation of cause and effect. When again it is asked, What is the foundation of all our reasonings and conclusions concerning that relation? it may be replied in one word, experience. But if we still carry on our sifting humor, and ask, What is the foundation of all conclusions from experience? this implies a new question, which may be of more difficult solution and explication. :cite:`hume48`
+Design and Comparisons
+----------------------
 
-Dois in bibliographies
-++++++++++++++++++++++
+The software is designed to be as lightweight and flexible as possible, simultaneously offering the benefits of filesystem usage and more traditional DBMS.
+**Contrast with the use of DBMS, talk about indexing and how it is implementing via JSON metadata and crawlers. Also talk about the efficiency in our use-cases i.e. lots of parallelism and serialization.**
+Using file-system crawlers and leveraging the JSON metadata stored in each job, we can efficiently traverse the data space and construct indices.
+While users can interact with these directly, they are automatically generated on-the-fly for all search operations, ensuring that their usage is transparent unless a more explicit representation is required.
+In this fashion, the underlying data is highly flexible in the signac representation, since the only requirement is that there is some sort of primary key that can be expressed as a JSON encodeable object.
 
-In order to include a doi in your bibliography, add the doi to your bibliography
-entry as a string. For example:
+The closest comparison to the signac data model we have found is datreant, which is even less restrictive in not requiring such a key structure.
+**Talk a little about datreant's drawbacks**
+The primary distinction between datreant and signac, however, is the existence of a workflow manager on top of these data structures.
 
-.. code-block:: bibtex
+The signac framework's explicit focus on flexible data representation distinguishes signac from the majority of similar software in the field, which *couple* the workflow and data aspects.
+Important examples of this are the AiiDA project and the Fireworks tools, both of which enable powerful workflow management at the cost of data representation flexibility.
+Using either of these tools strongly couples you to a particular data representation, which can be not only a significant barrier to implementation, but in fact a hindrance when this data model is not the most natural way to structure your data.
+In contrast, while signac-flow requires using signac as the back-end, the data schema and details of the database usage are left entirely to the user, allowing much greater flexibility.
+In this respect, signac-flow is more comparable to something like Sacred, which enables the tracking of experiments through a workflow management like engine.
+However, signac offers the additional benefit of enabling multistep workflows in a transparent manner, and additionally, the ability to scale these workflows to HPC environments (**Make sure to verify this and include comparison to sacred**).
 
-   @Book{hume48,
-     author =  "David Hume",
-     year =    "1748",
-     title =   "An enquiry concerning human understanding",
-     address =     "Indianapolis, IN",
-     publisher =   "Hackett",
-     doi = "10.1017/CBO9780511808432",
-   }
+The closest thing to replicating signac's capabilities would be an integrated setup utilizing datreant and Sacred.
+Since those pieces of software individually address the data and workflow components, it is possible to integrate them in a manner that affords sufficient flexibility to the user.
+**Maybe show an example?**
+However, this requires much more work, and is not nearly as transparent as the usage of signac.
 
+**We can also talk more about signac's modularity and extensibility here, e.g. with respect to dashboard's development**
 
-If there are errors when adding it due to non-alphanumeric characters, see if
-wrapping the doi in ``\detokenize`` works to solve the issue.
 
-.. code-block:: bibtex
+Implementation Details
+------------------------
 
-   @Book{hume48,
-     author =  "David Hume",
-     year =    "1748",
-     title =   "An enquiry concerning human understanding",
-     address =     "Indianapolis, IN",
-     publisher =   "Hackett",
-     doi = \detokenize{10.1017/CBO9780511808432},
-   }
+The signac framework is implemented in entirely in pure Python with no additional hard dependencies.
+The software runs equally well on 2.x and 3.x, and a command line interface is available and easy to use for core functionality to simplify integration with other tools.
+The central component to the signac framework is the Project class, which provides the interface to signac's data model and features.
+The signac project encapsulates much of the functionality for indexing, searching, selecting, and grouping individual data points from the data space.
+Each of these processes generates an index, and accessing individual data points from this index leads to the instantation of Jobs, which are Python object handles that represent individual data points.
+Since these data points effectively correspond to filesystem locations, they can be mapped directly and operated on in this fashion.
 
-Source code examples
---------------------
+**What else is important to include here? We can incorporate details as desired here**
 
-Of course, no paper would be complete without some source code.  Without
-highlighting, it would look like this::
 
-   def sum(a, b):
-       """Sum two numbers."""
-
-       return a + b
-
-With code-highlighting:
-
-.. code-block:: python
-
-   def sum(a, b):
-       """Sum two numbers."""
-
-       return a + b
-
-Maybe also in another language, and with line numbers:
-
-.. code-block:: c
-   :linenos:
-
-   int main() {
-       for (int i = 0; i < 10; i++) {
-           /* do something */
-       }
-       return 0;
-   }
-
-Or a snippet from the above code, starting at the correct line number:
-
-.. code-block:: c
-   :linenos:
-   :linenostart: 2
-
-   for (int i = 0; i < 10; i++) {
-       /* do something */
-   }
-
-Important Part
---------------
-
-It is well known [Atr03]_ that Spice grows on the planet Dune.  Test
-some maths, for example :math:`e^{\pi i} + 3 \delta`.  Or maybe an
-equation on a separate line:
-
-.. math::
-
-   g(x) = \int_0^\infty f(x) dx
-
-or on multiple, aligned lines:
-
-.. math::
-   :type: eqnarray
-
-   g(x) &=& \int_0^\infty f(x) dx \\
-        &=& \ldots
-
-The area of a circle and volume of a sphere are given as
-
-.. math::
-   :label: circarea
-
-   A(r) = \pi r^2.
-
-.. math::
-   :label: spherevol
-
-   V(r) = \frac{4}{3} \pi r^3
-
-We can then refer back to Equation (:ref:`circarea`) or
-(:ref:`spherevol`) later.
-
-Mauris purus enim, volutpat non dapibus et, gravida sit amet sapien. In at
-consectetur lacus. Praesent orci nulla, blandit eu egestas nec, facilisis vel
-lacus. Fusce non ante vitae justo faucibus facilisis. Nam venenatis lacinia
-turpis. Donec eu ultrices mauris. Ut pulvinar viverra rhoncus. Vivamus
-adipiscing faucibus ligula, in porta orci vehicula in. Suspendisse quis augue
-arcu, sit amet accumsan diam. Vestibulum lacinia luctus dui. Aliquam odio arcu,
-faucibus non laoreet ac, condimentum eu quam. Quisque et nunc non diam
-consequat iaculis ut quis leo. Integer suscipit accumsan ligula. Sed nec eros a
-orci aliquam dictum sed ac felis. Suspendisse sit amet dui ut ligula iaculis
-sollicitudin vel id velit. Pellentesque hendrerit sapien ac ante facilisis
-lacinia. Nunc sit amet sem sem. In tellus metus, elementum vitae tincidunt ac,
-volutpat sit amet mauris. Maecenas [#]_ diam turpis, placerat [#]_ at adipiscing ac,
-pulvinar id metus.
-
-.. [#] On the one hand, a footnote.
-.. [#] On the other hand, another footnote.
-
-.. figure:: figure1.png
-
-   This is the caption. :label:`egfig`
-
-.. figure:: figure1.png
-   :align: center
-   :figclass: w
-
-   This is a wide figure, specified by adding "w" to the figclass.  It is also
-   center aligned, by setting the align keyword (can be left, right or center).
-
-.. figure:: figure1.png
-   :scale: 20%
-   :figclass: bht
-
-   This is the caption on a smaller figure that will be placed by default at the
-   bottom of the page, and failing that it will be placed inline or at the top.
-   Note that for now, scale is relative to a completely arbitrary original
-   reference size which might be the original size of your image - you probably
-   have to play with it. :label:`egfig2`
-
-As you can see in Figures :ref:`egfig` and :ref:`egfig2`, this is how you reference auto-numbered
-figures.
-
-.. table:: This is the caption for the materials table. :label:`mtable`
-
-   +------------+----------------+
-   | Material   | Units          |
-   +============+================+
-   | Stone      | 3              |
-   +------------+----------------+
-   | Water      | 12             |
-   +------------+----------------+
-   | Cement     | :math:`\alpha` |
-   +------------+----------------+
-
-
-We show the different quantities of materials required in Table
-:ref:`mtable`.
-
-
-.. The statement below shows how to adjust the width of a table.
-
-.. raw:: latex
-
-   \setlength{\tablewidth}{0.8\linewidth}
-
-
-.. table:: This is the caption for the wide table.
-   :class: w
-
-   +--------+----+------+------+------+------+--------+
-   | This   | is |  a   | very | very | wide | table  |
-   +--------+----+------+------+------+------+--------+
-
-Unfortunately, restructuredtext can be picky about tables, so if it simply
-won't work try raw LaTeX:
-
-
-.. raw:: latex
-
-   \begin{table*}
-
-     \begin{longtable*}{|l|r|r|r|}
-     \hline
-     \multirow{2}{*}{Projection} & \multicolumn{3}{c|}{Area in square miles}\tabularnewline
-     \cline{2-4}
-      & Large Horizontal Area & Large Vertical Area & Smaller Square Area\tabularnewline
-     \hline
-     Albers Equal Area  & 7,498.7 & 10,847.3 & 35.8\tabularnewline
-     \hline
-     Web Mercator & 13,410.0 & 18,271.4 & 63.0\tabularnewline
-     \hline
-     Difference & 5,911.3 & 7,424.1 & 27.2\tabularnewline
-     \hline
-     Percent Difference & 44\% & 41\% & 43\%\tabularnewline
-     \hline
-     \end{longtable*}
-
-     \caption{Area Comparisons \DUrole{label}{quanitities-table}}
-
-   \end{table*}
-
-Perhaps we want to end off with a quote by Lao Tse [#]_:
-
-  *Muddy water, let stand, becomes clear.*
-
-.. [#] :math:`\mathrm{e^{-i\pi}}`
-
-.. Customised LaTeX packages
-.. -------------------------
-
-.. Please avoid using this feature, unless agreed upon with the
-.. proceedings editors.
-
-.. ::
-
-..   .. latex::
-..      :usepackage: somepackage
-
-..      Some custom LaTeX source here.
-
-References
+Conclusion
 ----------
-.. [Atr03] P. Atreides. *How to catch a sandworm*,
-           Transactions on Terraforming, 21(3):261-300, August 2003.
 
 
