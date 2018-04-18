@@ -11,7 +11,7 @@
 :institution: Department of Chemical Engineering, University of Michigan, Ann Arbor
 
 :author: Bradley D. Dice
-:email: vramasub@umich.edu
+:email: bdice@umich.edu
 :institution: Department of Physics, University of Michigan, Ann Arbor
 
 :author: Sharon Glotzer
