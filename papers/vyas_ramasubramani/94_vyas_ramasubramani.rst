@@ -31,13 +31,11 @@ signac: A Python framework for data and workflow management
 
 .. class:: abstract
 
-	**Based on the comments on our proposal I've written an abstract to really highlight why we are important/unique. It's probably a little too long, but I first want to make sure key ideas come across**
-
     Organizing and conducting computational research requires versatile, minimally restrictive tools that can easily adapt to the highly dynamic data schemas and workflows characteristic of scientific investigations.
     The workflow requirements of many existing tools are sufficiently onerous to discourage their incorporation into existing work, with researchers preferring their own *ad hoc* data and provenance management methods that are less robust but require no additional effort to adopt.
     The resulting data fragmentation and methodological incompatibilities significantly impede computational research.
 	Our talk showcases the signac framework, an open-source Python package that offers highly modular and scalable solutions for this problem.
-    Its highly flexible, server-free data model allows easy adaptation into pre-existing file-based workflows without sacrificing critical database functionality such as filtering, searching, and grouping data.
+    Its highly flexible, schema-free, and serverless data model allows easy adaptation into pre-existing file-based workflows without sacrificing critical database functionality such as filtering, searching, and grouping data.
     Furthermore, by decoupling data and workflow management, signac nearly eliminates the barrier for initial adoption while also providing powerful workflow management tools on top of its data model as needed.
     The framework is designed with high performance computing in mind, meaning that both its data and workflow management components scale from laptop or desktop usage to large compute clusters.
 
@@ -53,29 +51,32 @@ Introduction
 ------------
 
 In the age of big data and high performance computing, streamlining the processes of data generation and analysis has become a primary challenge.
-Increases in computational resources have made it easier to generate and consume large quantities of data, but computational science has not yet maximized the possible gains from this due to limitations in the downstream processes for organizing and analyzing the data.
+Increases in computational resources have made it easier to generate and consume large quantities of data, but computational science has not yet maximized the possible gains from this due to limitations in the processes used for creating, organizing, and analyzing the data.
 Many applications in computational science depend on highly file-based workflows not amenable to traditional relational database for storing data, and HPC applications in particular require that data be available on-demand, enforcing strict performance requirements for any data storage mechanism.
 The ad hoc solutions typically employed in standard scientific workflows, such as using file-naming conventions (**Need to show examples**) for data management, are highly inflexible and lead to various downstream inefficiencies.
 This paper showcases the signac framework, a data and workflow management tool that aims to address these issues in a simple, powerful, and flexible manner.
 
-To concretely demonstrate signac's capabilities, we turn to an example.
-
-Consider the simple experiment of measuring the distance traveled by a projectile.
-Initially, we consider the simple experiment of a person throwing a pumpkin.
-Hypothesizing that the distance traveled is a function of the launch angle, you set up a simple computational experiment that applies basic kinematic to predict the distance traveled and stores the data in files named by the angle it contains data for (a relatively common practice in fields where the standard software packages generate all outputs as files).
-After the initial experiments are completed, however, you realize that a much larger initial velocity (and therefore a greater distance) could be attained by using a cannon instead of your arm!
-The simplest method for addressing this change, simply renaming all files to account for the new parameter, would quickly become infeasible if the parameter space increased further, and a more flexible traditional solution involving the use of e.g. a relational database might introduce unsustainable performance bottlenecks for file-based workflows.
+To concretely demonstrate signac's capabilities, we turn to a simple example.
+Consider the simple experiment of measuring the distance traveled by a projectile. **Can use the more lighthearted pumpkin example in the presentation**
+Initially, we assume that a person will be throwing this object.
+Hypothesizing that the distance traveled is a function of the launch angle, you set up a simple computational experiment that applies basic kinematics to predict the distance traveled and stores the data in files named by the angle it contains data for (a relatively common practice in fields where the standard software packages generate all outputs as files).
+After the initial experiments are completed, however, you realize that a much larger initial velocity (and therefore a greater distance) could be attained by using a mechanical device, such as a slingshot or a cannon.
+The simplest method for addressing this kind of change, simply renaming all files to account for the new parameter, would quickly become infeasible if the parameter space increased further, and a more flexible traditional solution involving the use of, e.g., a relational database might introduce unsustainable performance bottlenecks for file-based workflows.
 
 The signac framework is designed to handle this problem in a flexible and natural way for such workflows.
 By storing data with its associated metadata in an organized manner *directly on the filesystem*, signac provides database functionality such as searching and grouping data without the overhead of maintaining a server or interfacing with external systems.
 With signac, data space modifications like the one above are trivially achievable with just a few lines of Python code.
 Additionally, signac's workflow component makes it just as easy to modify the process of data generation.
 For example, accounting for air resistance in our calculation and comparing that result to our more naive approach is as simple as defining the new distance calculation as a Python function; signac's workflow component will immediately enable the use of this calculation on the existing data space through a single command-line command. 
+The crucial feature enabling signac's flexibility is that the data representation is independent of the workflow, so the underlying data can be modified without working going through any signac-specific workflow.
 
 
 Usage and Overview
 ------------------
 **Maybe have a global schematic of both signac and flow together here. It can show like workspace, job, project, etc as one summary, then include Flowprojects as part of the other summary to show the components of flow and the link**
+
+We will use the above example to illustrate in some detail signac's utility and its inner workings.
+
 
 *Given the audience, it may be fine to just include the code as part of the introduction*
 
@@ -139,6 +140,7 @@ Using either of these tools strongly couples you to a particular data representa
 In contrast, while signac-flow requires using signac as the back-end, the data schema and details of the database usage are left entirely to the user, allowing much greater flexibility.
 In this respect, signac-flow is more comparable to something like Sacred, which enables the tracking of experiments through a workflow management like engine.
 However, signac offers the additional benefit of enabling multistep workflows in a transparent manner, and additionally, the ability to scale these workflows to HPC environments (**Make sure to verify this and include comparison to sacred**).
+**Remember that Sacred does not offer data management except through its workflow**
 
 The closest thing to replicating signac's capabilities would be an integrated setup utilizing datreant and Sacred.
 Since those pieces of software individually address the data and workflow components, it is possible to integrate them in a manner that affords sufficient flexibility to the user.
