@@ -29,22 +29,24 @@ signac: A Python framework for data and workflow management
 
 .. class:: abstract
 
-Computational research requires versatile data and workflow management tools that can easily adapt to the highly dynamic requirements of scientific investigations. 
-Many existing tools require strict adherence to a particular usage pattern, so researchers often use less robust ad hoc solutions that they find easier to adopt. 
-The resulting data fragmentation and methodological incompatibilities significantly impede research. 
-Our talk showcases signac, an open-source Python framework that offers highly modular and scalable solutions for this problem. 
-The framework's powerful workflow management tools enable users to construct and automate workflows that transitions seamlessly from laptops to HPC clusters. 
-Crucially, the underlying data model is completely independent of the workflow. 
-The flexible, serverless, and schema-free signac database can be introduced into other workflows with essentially no overhead and no recourse to the signac workflow model. 
-Additionally, the data model's simplicity makes it easy to parse the underlying data without using signac at all. 
+Computational research requires versatile data and workflow management tools that can easily adapt to the highly dynamic requirements of scientific investigations.
+Many existing tools require strict adherence to a particular usage pattern, so researchers often use less robust ad hoc solutions that they find easier to adopt.
+The resulting data fragmentation and methodological incompatibilities significantly impede research.
+Our talk showcases signac, an open-source Python framework that offers highly modular and scalable solutions for this problem.
+The framework's powerful workflow management tools enable users to construct and automate workflows that transitions seamlessly from laptops to HPC clusters.
+Crucially, the underlying data model is completely independent of the workflow.
+The flexible, serverless, and schema-free signac database can be introduced into other workflows with essentially no overhead and no recourse to the signac workflow model.
+Additionally, the data model's simplicity makes it easy to parse the underlying data without using signac at all.
 This modularity and simplicity eliminates significant barriers for consistent data management across projects, facilitating improved provenance management and data sharing with minimal overhead.
 
 .. class:: keywords
 
-	data management, database, data sharing, provenance, computational workflow 
+	data management, database, data sharing, provenance, computational workflow
 
 Introduction
 ------------
+
+**All outstanding questions are in bold. In particular, I'm not sure yet about how the figures look (and how to make them better), so any ideas would be appreciated.**
 
 Streamlining data generation and analysis is a critical challenge for science in the age of big data and high performance computing (HPC).
 Modern computational resources can generate and consume enormous quantities of data, but process automation and data management tools have lagged behind.
@@ -68,29 +70,43 @@ Once the process has completed, the resulting data can be accessed without refer
 
 **Overview figure**
 
+.. figure:: make_data_space.png
+   :align: center
+   :scale: 60 %
+   :figclass: w
+
+   A very simple example using signac to create the basics of a data space.
+   In this example, all work is conducted inside a Jupyter notebook to indicate how easily this can be done.
+   Note how fewer than ten lines of code are required to initialize a database and add data.
+   :label:`fig:data`
+
 Overview and Examples
 ---------------------
 **Maybe have a global schematic of both signac and flow together here.
 It can show like workspace, job, project, etc as one summary, then include Flowprojects as part of the other summary to show the components of flow and the link**
 To demonstrate how signac works, we take a simple, concrete example of the scenario described above.
 Consider an experiment in which we want to find the optimal launch angle to maximize the distance traveled by a projectile through air.
-The first step is initializing the data space, as shown in Figure 2.
-Fig. 2 demonstrates the creation of the core entities in signac's data model: (1) the project, the overarching directory in which everything happens; (2) the workspace, where data is stored for individual data points; (3) the job, which represents a single data point; and (4) the state point, the unique key identifying the job.
+The first step is initializing the data space, as shown in fig. :ref:`fig:data`.
+Fig. :ref:`fig:data` demonstrates the creation of the core entities in signac's data model: (1) the project, the overarching directory in which everything happens; (2) the workspace, where data is stored for individual data points; (3) the job, which represents a single data point; and (4) the state point, the unique key identifying the job.
 Although in practice we can see that everything is stored as a file, these objects provide layers of abstraction that make them far more useful than simple file system storage, as we will see.
-
-**Insert figure**
 
 One could easily imagine interfacing existing scripts with this data model.
 The only requirement is some concept of a unique key for all data so that it can be inserted into the database.
-The unique key is what enables the creation of the 32 character hash, or job id, used to identify the job and its workspace folder (shown in Fig. 2).
+The unique key is what enables the creation of the 32 character hash, or job id, used to identify the job and its workspace folder (shown in fig. :ref:`fig:data`).
 The uniqueness of this hash is what enables all of signac's indexing and related functionality.
-
 
 Ultimately, however, it is important to define the processes that generate and operate on this data cleanly and concisely.
 The signac-flow component of the framework provides the tools to accomplish this.
 In the below code block, we demonstrate how we could automate the generation of this data using signac-flow.
 
-**Insert figure**
+.. figure:: run_ops.png
+   :align: center
+   :scale: 60 %
+   :figclass: w
+
+   The signac-flow module enables the easy automation of workflows operating on signac workspaces.
+   In this case, the workspace consists only of one job; the real power of the FlowProject arises from its ability to automatically handle an arbitrary sequence of operations on a large number of jobs.
+   :label:`fig:ops`
 
 Note that we are now using the job document, a lightweight JSON storage mechanism, but we can also directly store files into the job's workspace and operate on them later.
 This unrestrictive model enables easy adaptation and modification as needed.
@@ -99,22 +115,24 @@ For example, if we instead want to consider how changing initial velocity affect
 .. code-block:: python
 
     import numpy as np
-    for job in project: # equivalent to `for job in project.find_jobs():`
+    for job in project:
         job.sp.v = 1
 
 Note that an alternative to operating on all jobs is by selecting some subset.
 One way to accomplish this would be to apply a filter within the loop using conditionals based on the job state point.
 A more elegant solution, however, is to take advantage of signac's query API, which allows the user to find only the jobs of interest using a dictionary as a filter.
+For example, in the above snippet we could replace ``for job in project`` with ``for job in project.find_jobs()``, using an arbitrary dictionary as the argument to ``find_jobs`` to filter on the state point keys.
 The job finding functionality of signac is the entry point for its database functionality, enabling advanced indexing, selection, and grouping operations.
 
 Having made the above change to our data space, we could now  easily add new data points to test:
 
 .. code-block:: python
 
-    import numpy as np
+    from numpy import linspace
     for v in [1, 2, 3]:
-        for theta in np.round(np.linspace(0, 3.14/2, 5), 2):
-            project.open_job({"v": v, "theta": theta}).init()
+        for theta in np.round(linspace(0, 1.57, 5), 2):
+            sp = {"v": v, "theta": theta}
+            project.open_job(sp).init()
 
 Note that jobs that already exist in the data space will not be overwritten, so there is no harm in performing a loop like this multiple times.
 
@@ -125,14 +143,14 @@ For example, the search functionality is available directly on the command line,
 
 .. code-block:: bash
 
-    $ # signac's command line interface will interpret simple queries
+    $ # Simple queries can be interpreted from text
     $ signac find theta 0.39
     Interpreted filter arguments as '{"theta": 0.39}'.
     d3012d490304c3c1171a273a50b653ad
     1524633c646adce7579abdd9c0154d0f
     22fa30ddf3cc90b1b79d19fa7385bc95
 
-    $ # More complex queries can be constructed with JSON
+    $ # Complex queries use JSON for operators
     $ signac find '{"v": {"$lt": 2}}'
     d61ac71a00bf73a38434c884c0aa82c9
     00e5f0c36294f0eee4a30cabb7c6046c
@@ -147,38 +165,43 @@ Additionally, at any point we can get an overview of what the data space schema 
 
     $ signac schema
     {
-     'theta': 'int([3], 1), float([0.0, 0.39, 0.78, 1.18, 1.57], 5)',
+     'theta': 'int([3], 1), float([0.0, ..., 1.57], 5)',
      'v': 'int([1, 2, 3], 3)',
     }
 
-Now that we have this data space, one could imagine defining more complex workflows than the simple single-operation one shown in Fig. 3.
+Now that we have this data space, one could imagine defining more complex workflows than the simple single-operation one shown in fig. :ref:`fig:ops`.
 In fact, signac-flow enables arbitrarily complex workflows that use simple pre- and post-conditions on individual operations to construct a directed acyclic graph:
 
 .. code-block:: python
 
-    # The project.py shown in the notebook
+    # project.py (as shown in the notebook)
     ...
     @FlowProject.operation
     @FlowProject.post(lambda job: 'tmax' in job.document())
     def calculate(job):
         ...
 
-Once the operations are defined along with the associated conditions, the interface demonstrated above will automatically run through the workflow in the appropriate sequence, ensuring that only incomplete tasks are run, i.e., once `tmax` has been calculated for a particular job, the `calculate` operation will not run again for that job.
+Once the operations are defined along with the associated conditions, the interface demonstrated above will automatically run through the workflow in the appropriate sequence, ensuring that only incomplete tasks are run, i.e., once ``tmax`` has been calculated for a particular job, the ``calculate`` operation will not run again for that job.
 While this automatic parallelization over the workflow is the default behavior, signac-flow also enables much more fine-grained control:
 
 .. code-block:: bash
 
-    $ # Automatically run all outstanding operations for all jobs
+    $ # Runs all outstanding operations for all jobs
     $ python project.py run
-    $ # ignore workflow status and run a specific job operation
+    $ # Ignore workflow status, run specific job-operation
     $ python project.py exec -o ${OP} -j ${JOB_ID}
     $ python project.py run --
 
-    A critical feature of the signac framework is scalability to HPC. The file-based data model is designed to leverage the high performance file systems common on such systems, and workflows designed locally are immediately executable on HPC clusters. In particular, any operation that can be successfully executed in the manner shown in Fig. 3 can also be immediately submitted to cluster schedulers. The signac-flow package achieves this by creating cluster job scripts that perform the above operations:
+A critical feature of the signac framework is scalability to HPC.
+The file-based data model is designed to leverage the high performance file systems common on such systems, and workflows designed locally are immediately executable on HPC clusters.
+In particular, any operation that can be successfully executed in the manner shown in fig. :ref:`fig:ops` can also be immediately submitted to cluster schedulers.
+The signac-flow package achieves this by creating cluster job scripts that perform the above operations:
 
-    .. code-block:: bash
-    $ python project.py submit -n 1 -w 12 --pretend # Print the script for one 12-hour job
-    Submitting operation 'calculate' for job 'd61ac71a00bf73a38434c884c0aa82c9'...
+.. code-block:: bash
+
+    $ # Print the script for one 12-hour job
+    $ python project.py submit -n 1 -w 12 --pretend
+    Submitting operation 'calculate' for job 'd61a...'
     #PBS -N d61ac71a00bf73a38434c884c0aa82c9-calculate
     #PBS -l walltime=12:00:00
     #PBS -l nodes=1
@@ -188,15 +211,16 @@ While this automatic parallelization over the workflow is the default behavior, 
 
     cd /nfs/glotzer/projects/signac/scipy/sample_project
 
-    # Operation 'calculate' for job 'd61ac71a00bf73a38434c884c0aa82c9':
-    python project.py exec calculate d61ac71a00bf73a38434c884c0aa82c9
+    # Operation 'calculate' for job 'd61a...':
+    python project.py exec calculate d61a...
 
 The workflow tracking functionality of signac-flow extends to compute clusters.
 In general, users can always check the status of particular jobs to see how far they have progressed in the workflow
 
 .. code-block:: bash
 
-    $ python project.py submit -n 3 -w 12 --hold # Submit 3 random jobs for 12 hours
+    $ # Submit 3 random jobs for 12 hours
+    $ python project.py submit -n 3 -w 12 --hold
     $ python project.py status -d
     Status project 'Projectiles':
     Total # of jobs: 16
@@ -206,24 +230,24 @@ In general, users can always check the status of particular jobs to see how far 
     [no labels]
 
     Detailed view:
-    job_id                               			S    	next_op    	labels
-    --------------------------------  			---  	---------  	--------
-    00e5f0c36294f0eee4a30cabb7c6046c  	U !  	calculate
-    585599fe9149eed3e2dced76ef246903  	A  	calculate
-    2faf0f76bde3af984a91b5e42e0d6a0b  	U !  	calculate
-    75e65263ecf783a50858e3c73365de16  	U !  	calculate
-    13d54ee5821a739d50fc824214ae9a60  	U !  	calculate
-    09310923e2ddaf5d55201ccfa25b594a  	U !  	calculate
-    029bd71f9412e12a881df1aaf9a3a093 	U !  	calculate
-    03d50a048c0423bda80c9a56e939f05b  	U !  	calculate
-    2fc4156e493deb1ab16607a3c2b99630  	U !  	calculate
-    d61ac71a00bf73a38434c884c0aa82c9  	A  	calculate
-    22fa30ddf3cc90b1b79d19fa7385bc95  	U !  	calculate
-    41dea88eaee4159c3a5e7dce6d8e51f7	A 	calculate
-    3201fd381819dde4329d1754233f7b76  	U !  	calculate
-    1524633c646adce7579abdd9c0154d0f	U !  	calculate
-    d3012d490304c3c1171a273a50b653ad  	U !  	calculate
-    9fa1900a378aa05b9fd3d89f11ef0e5b  	U !  	calculate
+    job_id                             S    next_op 
+    --------------------------------  ---  ---------
+    00e5f0c36294f0eee4a30cabb7c6046c   U   calculate
+    585599fe9149eed3e2dced76ef246903   A   calculate
+    2faf0f76bde3af984a91b5e42e0d6a0b   U   calculate
+    75e65263ecf783a50858e3c73365de16   U   calculate
+    13d54ee5821a739d50fc824214ae9a60   U   calculate
+    09310923e2ddaf5d55201ccfa25b594a   U   calculate
+    029bd71f9412e12a881df1aaf9a3a093   U   calculate
+    03d50a048c0423bda80c9a56e939f05b   U   calculate
+    2fc4156e493deb1ab16607a3c2b99630   U   calculate
+    d61ac71a00bf73a38434c884c0aa82c9   A   calculate
+    22fa30ddf3cc90b1b79d19fa7385bc95   U   calculate
+    41dea88eaee4159c3a5e7dce6d8e51f7   A   calculate
+    3201fd381819dde4329d1754233f7b76   U   calculate
+    1524633c646adce7579abdd9c0154d0f   U   calculate
+    d3012d490304c3c1171a273a50b653ad   U   calculate
+    9fa1900a378aa05b9fd3d89f11ef0e5b   U   calculate
 
     Abbreviations used:
     !: requires_attention
@@ -233,14 +257,17 @@ In general, users can always check the status of particular jobs to see how far 
 
 All jobs in the projects are currently eligible for the calculate operation (next_op column), but 3 of them are currently active on the cluster as shown in the second column.
 Once the operation has completed, the next_op column will become empty since the post-condition that we set would indicate that the operation has completed.
-Note that the labels column is empty because we have not created any labels.
+Note that the labels section shows that there are currently no labels; this is because we have not created any yet.
 The label feature of signac-flow provides a way to enrich the status output by defining custom functions that indicate indicate additional information about jobs.
+These sould appear in an additional column to the right of the `next_op` column to provide additional information for each job.
 Additionally, these label functions can be used as conditions for operation execution.
+For example, in this case we could have a simple label defined by ``tmax in job.document()`` to indicate that the calculate operation had been performed.
+
 
 The quick overview of this section highlights the core features of the signac framework.
 **Should we mention MongoDB at some point?**
 Although demonstrated here for a very simple example, the data model scales easily to thousands of data points and far more complex and nonlinear workflows.
-Demonstrations can be seen on the documentation on ReadTheDocs `signac.readthedocs.io`, the signac website `signac.io`, or the paper in the Journal of Computational Materials Science :cite:`ADORF2018220`. 
+Demonstrations can be seen on the documentation on ReadTheDocs `signac.readthedocs.io`, the signac website `signac.io`, or the paper in the Journal of Computational Materials Science :cite:`ADORF2018220`.
 
 
 Design and Implementation
