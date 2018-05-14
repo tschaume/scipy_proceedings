@@ -338,7 +338,7 @@ Therefore, in principle both pieces of software could be used to achieve differe
 
 However, Sacred is currently incompatible with signac-flow.
 Sacred and signac-flow both depend on the registration of particular functions with some internal API: in signac-flow, functions are stored as operations within the *FlowProject*, whereas Sacred tracks functions through the *Experiment* class.
-Since the actual script can only be run through one of these interfaces (whether on the command line or directly in Python), running operations using signac-flow prevents tracking them using Sacred.
+Since the actual script can only be run through one of these interfaces (whether on the command line or directly in Python), while it is possible to use signac's database facilities in concert with Sacred, running operations using signac-flow prevents tracking them using Sacred.
 An alternative to Sacred is Sumatra, another Python provenance tracking tools that *can* be integrated with signac.
 Sumatra provides a command line utility for simple usage, but it also allows direct integration into Python scripts via a Python API.
 While the command line API is not flexible enough to allow passing arguments through to signac-flow, the Python API can be easily integrated into signac-flow operations for tracking workflows managed by signac-flow.
