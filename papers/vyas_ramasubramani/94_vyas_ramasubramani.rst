@@ -46,7 +46,17 @@ This modularity and simplicity eliminates significant barriers for consistent da
 Introduction
 ------------
 
-**All outstanding questions are in bold. In particular, I'm not sure yet about how the figures look (and how to make them better), so any ideas would be appreciated.**
+.. figure:: summary_figure.pdf
+   :align: center
+   :scale: 100 %
+   :figclass: w
+
+   The data in a signac project (A) is contained in its workspace (dark grey outline), which in turn is composed of individual data points (grey points) that exist within some multidimensional parameter space (light grey background)
+   Each data point, or job, is associated with a unique hash value (e.g., 3d5) computed from its state point, the unique key identifying the job
+   Using signac, the data can be easily searched, filtered, grouped, and indexed
+   To generate and act on this data space, signac can be used to define workflows (B), which are generically represented as a set of operations composing a directed, acyclic graph
+   Using a series of pre- and post-conditions defined on these operations, signac tracks the progress of this workflow on a per-job basis (C) to determine whether a particular job is complete (greyed text, green check), eligible (bold text, arrow), or blocked (normal text, universal no).
+   :label:`fig:summary`
 
 Streamlining data generation and analysis is a critical challenge for science in the age of big data and high performance computing (HPC).
 Modern computational resources can generate and consume enormous quantities of data, but process automation and data management tools have lagged behind.
@@ -60,7 +70,7 @@ However, a problem arises if we realize that some additional parameter is also r
 A simple solution might be to just rename the files to account for this parameter as well, but this approach would quickly become intractable if the parameter space increased further, and a more flexible traditional solution involving the use of, e.g., a relational MySQL :cite:`mysql` database might introduce undesirable setup costs and performance bottlenecks for file-based workflows on HPC.
 Even if we do employ such a solution, we also have to account for our workflow process: we need a way to run analysis and post-processing on just the new data points without performing unnecessary work on the old ones.
 
-This paper showcases the signac framework, a data and workflow management tool that aims to address these issues in a simple, powerful, and flexible manner.
+This paper showcases the signac framework, a data and workflow management tool that aims to address these issues in a simple, powerful, and flexible manner (:ref:`fig:summary`).
 By storing JSON-encoded metadata and the associated data together directly on the file system, signac provides database functionality such as searching and grouping data without the overhead of maintaining a server or interfacing with external systems, and it takes advantage of the high performance file systems common to HPC.
 With signac, data space modifications like the one above are trivially achievable with just a few lines of Python code.
 Additionally, signac's workflow component makes it just as easy to modify the process of data generation, since we simply define the post-processing as a Python function.
@@ -68,22 +78,19 @@ The workflow component of the framework, signac-flow, will immediately enable th
 The resulting data can be accessed without reference to the workflow, ensuring that it is immediately available to anyone irrespective of the tools they are using.
 
 
-**Overview figure**
+Overview and Examples
+---------------------
 
 .. figure:: make_data_space.png
    :align: center
    :scale: 60 %
-   :figclass: w
+   :figclass: tw
 
    A very simple example using signac to create the basics of a data space.
    In this example, all work is conducted inside a Jupyter notebook to indicate how easily this can be done.
    Note how fewer than ten lines of code are required to initialize a database and add data.
    :label:`fig:data`
 
-Overview and Examples
----------------------
-**Maybe have a global schematic of both signac and flow together here.
-It can show like workspace, job, project, etc as one summary, then include Flowprojects as part of the other summary to show the components of flow and the link**
 To demonstrate how signac works, we take a simple, concrete example of the scenario described above.
 Consider an experiment in which we want to find the optimal launch angle to maximize the distance traveled by a projectile through air.
 The first step is to initialize the data space, as shown in fig. :ref:`fig:data`.
@@ -101,15 +108,6 @@ The uniqueness of this hash value is what enables all of signac's indexing and r
 Ultimately, however, it is important to define the processes that generate and operate on this data cleanly and concisely.
 The signac-flow component of the framework provides the tools to accomplish this.
 In the below code block, we demonstrate how we could automate the generation of this data using signac-flow.
-
-.. figure:: run_ops.png
-   :align: center
-   :scale: 60 %
-   :figclass: w
-
-   The signac-flow module enables the easy automation of workflows operating on signac workspaces.
-   In this case, the workspace consists only of one job; the real power of the FlowProject arises from its ability to automatically handle an arbitrary sequence of operations on a large number of jobs.
-   :label:`fig:ops`
 
 Note that signac-flow has a concept of a project, the FlowProject, that is distinct from the signac project; while the signac project provides the interface to the data, the FlowProject is the abstraction with which workflows are defined.
 In this script, we are storing the output in the job document, a lightweight JSON storage mechanism that signac provides, but we could also directly store files into the job's workspace and operate on them later if we desired.
@@ -180,6 +178,16 @@ Additionally, at any point we can get an overview of what the data space schema 
     }
 
 Now that we have this data space, one could imagine defining more complex workflows than the simple single-operation one shown in fig. :ref:`fig:ops`.
+
+.. figure:: run_ops.png
+   :align: center
+   :scale: 60 %
+   :figclass: w
+
+   The signac-flow module enables the easy automation of workflows operating on signac workspaces.
+   In this case, the workspace consists only of one job; the real power of the FlowProject arises from its ability to automatically handle an arbitrary sequence of operations on a large number of jobs.
+   :label:`fig:ops`
+
 In fact, signac-flow enables arbitrarily complex workflows that use pre- and post-conditions on individual operations to construct a directed acyclic graph:
 
 .. code-block:: python
@@ -191,7 +199,7 @@ In fact, signac-flow enables arbitrarily complex workflows that use pre- and pos
     def calculate(job):
         ...
 
-In general, the ``project.py run`` interface demonstrated in :ref:`fig:ops` above will automatically run the entire workflow for every job in the workspace.
+In general, the ``project.py run`` interface demonstrated in fig. :ref:`fig:ops` will automatically run the entire workflow for every job in the workspace.
 When conditions are defined the manner shown above, however, signac-flow will ensure that only incomplete tasks are run, i.e., once ``tmax`` has been calculated for a particular job, the ``calculate`` operation will not run again for that job.
 
 While the default behavior of ``project.py run`` is to run all reminaining steps in the workflow for every job, signac-flow also enables much more fine-grained control:
@@ -352,6 +360,7 @@ The generality of the datreant data model makes integrating it into existing wor
 However, this tool is highly domain-specific, unlike signac-flow, and it cannot be used for other types of computational investigations.
 In the field of molecular simulation, the combination of MDSynthesis and datreant is the closest analog to the signac framework, but that software does not generalize to other use-cases.
 
+
 Conclusions
 -----------
 
@@ -360,9 +369,3 @@ Motivated by the need for managing the dynamic, heterogeneous data spaces charac
 The framework has strived to achieve high ease of use and interoperability by emphasizing simple interfaces, minimizing external requirements, and employing open data formats like JSON.
 By doing so, the framework aims to minimize the initial barriers for new users, making it easy for researchers to begin using signac with little effort.
 The framework frees computational scientists from repeatedly solving common data and workflow problems throughout their research, and at a higher level, reduces the burden of sharing data and provenance tracking, both of which are critical to accelerating the production of reproducible and reusable scientific results.
-
-
-
-
-
-
